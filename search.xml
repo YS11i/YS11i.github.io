@@ -285,8 +285,7 @@
   <entry>
     <title>Confluence OGNL表达式注入命令执行- CVE-2022-26134</title>
     <url>/2022/06/06/Confluence%20OGNL%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B3%A8%E5%85%A5%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C-%20CVE-2022-26134/</url>
-    <content><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><hr>
-<p>Confluence是一个专业的企业知识管理与协同软件，也可以用于构建企业wiki。使用简单，可以用于企业团队共享信息、文档协作、集体讨论，信息推送。</p>
+    <content><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Confluence是一个专业的企业知识管理与协同软件，也可以用于构建企业wiki。使用简单，可以用于企业团队共享信息、文档协作、集体讨论，信息推送。</p>
 <h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><ul>
 <li>1.3.0 &lt;&#x3D; Confluence Server and Data Center &lt; 7.4.17</li>
 <li>7.13.0 &lt;&#x3D; Confluence Server and Data Center &lt; 7.13.7</li>
